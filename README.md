@@ -1,7 +1,7 @@
 # DL-CV-Projects
 A full-stack deep learning playground for computer vision built with FastAPI, React, and PyTorch. Practice-ready projects running on Google Colab, deployable as real-world web apps.
 
-DL-CV-Projects is a curated collection of hands-on computer vision projects, blending deep learning models (PyTorch), API services (FastAPI), and interactive UIs (React). It is designed to help learners without access to personal GPUs build, test, and deploy real-world CV applications — all free using Google Colab.
+📖 DL-CV-Projects is a curated collection of hands-on computer vision projects, blending deep learning models (PyTorch), API services (FastAPI), and interactive UIs (React). It is designed to help learners without access to personal GPUs build, test, and deploy real-world CV applications — all free using Google Colab.
 
 Each project follows an end-to-end pipeline:
 

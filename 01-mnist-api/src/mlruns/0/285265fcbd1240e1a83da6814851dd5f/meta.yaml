@@ -1,0 +1,14 @@
+artifact_uri: file:///Users/diptu/Projects/Personal/DL-CV-Projects/01-mnist-api/src/mlruns/0/285265fcbd1240e1a83da6814851dd5f/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 285265fcbd1240e1a83da6814851dd5f
+run_name: KNN_MNIST_Experiment
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751903837503
+status: 1
+tags: []
+user_id: diptu

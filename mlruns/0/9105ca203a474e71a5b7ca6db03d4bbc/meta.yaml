@@ -1,0 +1,14 @@
+artifact_uri: mlflow-artifacts:/0/9105ca203a474e71a5b7ca6db03d4bbc/artifacts
+end_time: 1751904996929
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 9105ca203a474e71a5b7ca6db03d4bbc
+run_name: KNN_MNIST_Experiment
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751904996870
+status: 3
+tags: []
+user_id: diptu

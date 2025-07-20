@@ -15,9 +15,11 @@ const computeOutputMatrix = (input, kernel, padding, stride) => {
   const inputRows = input.length;
   const inputCols = input[0]?.length || 0;
 
+  // Padded input dimensions
   const paddedRows = inputRows + 2 * padding;
   const paddedCols = inputCols + 2 * padding;
 
+  // Output matrix dimensions
   const outputRows = Math.floor((paddedRows - kernelSize) / stride) + 1;
   const outputCols = Math.floor((paddedCols - kernelSize) / stride) + 1;
   if (outputRows <= 0 || outputCols <= 0) return [[]];
@@ -30,6 +32,7 @@ const computeOutputMatrix = (input, kernel, padding, stride) => {
     }
   }
 
+  // Compute convolution output
   const output = [];
   for (let i = 0; i < outputRows; i++) {
     const row = [];
@@ -49,7 +52,7 @@ const computeOutputMatrix = (input, kernel, padding, stride) => {
 
 // Predefined common kernels
 const commonKernels = {
-  "Custom": null, // placeholder for manual editing
+  Custom: null,
   "Sobel X": [
     [1, 0, -1],
     [2, 0, -2],
@@ -70,7 +73,7 @@ const commonKernels = {
     [0, 0, 0],
     [-1, -1, -1],
   ],
-  "Sharpen": [
+  Sharpen: [
     [0, -1, 0],
     [-1, 5, -1],
     [0, -1, 0],
@@ -120,8 +123,9 @@ export default function App() {
   useEffect(() => {
     if (kernelSize > maxKernelSize) {
       setKernelSize(maxKernelSize);
+      setSelectedKernelName("Custom");
     }
-  }, [inputRows, inputCols, padding, maxKernelSize, kernelSize]);
+  }, [inputRows, inputCols, padding, maxKernelSize]);
 
   // When input rows or cols change, resize input matrix preserving data
   useEffect(() => {
@@ -154,7 +158,6 @@ export default function App() {
   const onKernelSelect = (name) => {
     setSelectedKernelName(name);
     if (name === "Custom") {
-      // Do not override kernel matrix on Custom
       return;
     }
     const kernel = commonKernels[name];
@@ -166,6 +169,7 @@ export default function App() {
   const outputRows = outputMatrix.length;
   const outputCols = outputMatrix[0]?.length || 0;
 
+  // Animation function to iterate over all output cells
   const startAnimation = async () => {
     setIsAnimating(true);
     for (let i = 0; i < outputRows; i++) {
@@ -285,9 +289,10 @@ export default function App() {
             matrix={inputMatrix}
             setMatrix={setInputMatrix}
             selectedCell={selectedCell}
-            kernelSize={kernelMatrix.length}
+            kernelSize={kernelMatrix?.length || kernelSize}
             kernelMatrix={kernelMatrix}
             padding={padding}
+            stride={stride}
           />
           <ColorPreview matrix={inputMatrix} />
         </div>
@@ -297,7 +302,7 @@ export default function App() {
             matrix={kernelMatrix}
             setMatrix={setKernelMatrix}
             selectedCell={selectedCell}
-            kernelSize={kernelMatrix.length}
+            kernelSize={kernelMatrix?.length || kernelSize}
           />
           <ColorPreview matrix={kernelMatrix} />
         </div>

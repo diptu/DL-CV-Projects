@@ -1,41 +1,58 @@
 import React from "react";
 
-const ConvolutionVisualizer = ({ input, filter }) => {
-  const convolve = (input, kernel) => {
-    const kernelSize = kernel.length;
-    const outputRows = input.length - kernelSize + 1;
-    const outputCols = input[0].length - kernelSize + 1;
-    const output = [];
+const ConvolutionVisualizer = ({
+  input,
+  filter,
+  padding = 0,
+  stride = 1,
+  selectedCell,
+  setSelectedCell,
+}) => {
+  const kernelSize = filter.length;
+  const inputRows = input.length;
+  const inputCols = input[0].length;
 
-    let min = Infinity;
-    let max = -Infinity;
+  const paddedRows = inputRows + 2 * padding;
+  const paddedCols = inputCols + 2 * padding;
 
-    for (let i = 0; i < outputRows; i++) {
-      const row = [];
-      for (let j = 0; j < outputCols; j++) {
-        let sum = 0;
-        for (let ki = 0; ki < kernelSize; ki++) {
-          for (let kj = 0; kj < kernelSize; kj++) {
-            sum += input[i + ki][j + kj] * kernel[ki][kj];
-          }
-        }
-        row.push(sum);
-        min = Math.min(min, sum);
-        max = Math.max(max, sum);
+  // Create zero-padded input matrix
+  const paddedInput = Array.from({ length: paddedRows }, (_, r) =>
+    Array.from({ length: paddedCols }, (_, c) => {
+      const ir = r - padding;
+      const ic = c - padding;
+      if (ir >= 0 && ir < inputRows && ic >= 0 && ic < inputCols) {
+        return input[ir][ic];
       }
-      output.push(row);
+      return 0;
+    })
+  );
+
+  const outputRows = Math.floor((paddedRows - kernelSize) / stride) + 1;
+  const outputCols = Math.floor((paddedCols - kernelSize) / stride) + 1;
+
+  let min = Infinity;
+  let max = -Infinity;
+  const output = [];
+
+  for (let i = 0; i < outputRows; i++) {
+    const row = [];
+    for (let j = 0; j < outputCols; j++) {
+      let sum = 0;
+      for (let ki = 0; ki < kernelSize; ki++) {
+        for (let kj = 0; kj < kernelSize; kj++) {
+          sum += paddedInput[i * stride + ki][j * stride + kj] * filter[ki][kj];
+        }
+      }
+      row.push(sum);
+      if (sum < min) min = sum;
+      if (sum > max) max = sum;
     }
-
-    return { output, min, max };
-  };
-
-  const { output, min, max } = convolve(input, filter);
+    output.push(row);
+  }
 
   const getColor = (value) => {
-    // Clamp values to 0-255 range for coloring
     let scaledValue = 0;
     if (max !== min) {
-      // Scale value linearly between 0 and 255
       scaledValue = ((value - min) / (max - min)) * 255;
     }
     scaledValue = Math.min(255, Math.max(0, scaledValue));
@@ -52,21 +69,30 @@ const ConvolutionVisualizer = ({ input, filter }) => {
       <div
         className="grid gap-0"
         style={{
-          gridTemplateColumns: `repeat(${output[0].length}, 2.5rem)`,
+          gridTemplateColumns: `repeat(${outputCols}, 2.5rem)`,
         }}
       >
-        {output.flat().map((val, idx) => {
-          const style = getColor(val);
-          return (
-            <div
-              key={idx}
-              className="border text-center w-10 h-10 p-0 m-0 flex items-center justify-center font-semibold"
-              style={style}
-            >
-              {val.toFixed(1)}
-            </div>
-          );
-        })}
+        {output.map((row, i) =>
+          row.map((val, j) => {
+            const style = getColor(val);
+            if (selectedCell && selectedCell.row === i && selectedCell.col === j) {
+              style.border = "3px solid #2563eb"; // Blue border for selected
+            } else {
+              style.border = "1px solid #ccc";
+            }
+            return (
+              <div
+                key={`${i}-${j}`}
+                className="text-center w-10 h-10 p-0 m-0 flex items-center justify-center font-semibold select-none cursor-pointer"
+                style={style}
+                onClick={() => setSelectedCell({ row: i, col: j })}
+                title={`Output cell [${i}, ${j}]`}
+              >
+                {val.toFixed(1)}
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

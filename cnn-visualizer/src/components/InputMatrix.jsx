@@ -7,10 +7,12 @@ const InputMatrix = ({
   kernelSize,
   kernelMatrix,
   padding = 0,
+  stride = 1,
 }) => {
   const totalRows = matrix.length + 2 * padding;
   const totalCols = (matrix[0]?.length || 0) + 2 * padding;
 
+  // Get min and max values from matrix (excluding padding)
   const getMinMax = (matrix) => {
     let min = Infinity,
       max = -Infinity;
@@ -26,6 +28,7 @@ const InputMatrix = ({
 
   const { min, max } = getMinMax(matrix);
 
+  // Base color for input cell background based on value
   const getBaseColor = (value) => {
     let numVal = value === "" ? 0 : Number(value);
     let scaled = 255;
@@ -44,24 +47,37 @@ const InputMatrix = ({
     };
   };
 
-  const isHighlighted = (rowIdx, colIdx) => {
+  // Check if a cell (rowIdx, colIdx) is inside the current kernel window overlay based on selectedCell and stride & padding
+  const isCellInKernelWindow = (rowIdx, colIdx) => {
     if (!selectedCell || !kernelSize) return false;
-    const { row, col } = selectedCell;
+
+    // Calculate the top-left position of kernel on padded input:
+    // The output cell corresponds to the window at:
+    // rowStart = selectedCell.row * stride
+    // colStart = selectedCell.col * stride
+    const rowStart = selectedCell.row * stride;
+    const colStart = selectedCell.col * stride;
+
     return (
-      rowIdx >= row + padding &&
-      rowIdx < row + padding + kernelSize &&
-      colIdx >= col + padding &&
-      colIdx < col + padding + kernelSize
+      rowIdx >= rowStart &&
+      rowIdx < rowStart + kernelSize &&
+      colIdx >= colStart &&
+      colIdx < colStart + kernelSize
     );
   };
 
+  // Get kernel matrix value that corresponds to cell (rowIdx, colIdx) inside the kernel window overlay
   const getKernelValue = (rowIdx, colIdx) => {
-    if (!isHighlighted(rowIdx, colIdx)) return null;
-    const ki = rowIdx - (selectedCell.row + padding);
-    const kj = colIdx - (selectedCell.col + padding);
+    if (!isCellInKernelWindow(rowIdx, colIdx)) return null;
+
+    // Kernel coords = offset inside kernel window
+    const ki = rowIdx - selectedCell.row * stride;
+    const kj = colIdx - selectedCell.col * stride;
+
     return kernelMatrix?.[ki]?.[kj];
   };
 
+  // Handler when user changes an input value (only for real input cells, not padding)
   const onChange = (rowIdx, colIdx, val) => {
     if (
       rowIdx < padding ||
@@ -69,7 +85,7 @@ const InputMatrix = ({
       colIdx < padding ||
       colIdx >= (matrix[0]?.length || 0) + padding
     ) {
-      return;
+      return; // ignore changes to padding cells
     }
 
     const realRow = rowIdx - padding;
@@ -84,6 +100,7 @@ const InputMatrix = ({
     }
     const numVal = Number(val);
     if (isNaN(numVal)) return;
+
     const newMatrix = matrix.map((row, i) =>
       i === realRow ? row.map((v, j) => (j === realCol ? numVal : v)) : row
     );
@@ -99,29 +116,65 @@ const InputMatrix = ({
       >
         {Array.from({ length: totalRows }).map((_, rowIdx) =>
           Array.from({ length: totalCols }).map((_, colIdx) => {
+            // Is this cell inside padding area?
             const inPadding =
               rowIdx < padding ||
               rowIdx >= matrix.length + padding ||
               colIdx < padding ||
               colIdx >= (matrix[0]?.length || 0) + padding;
 
+            // Is this cell highlighted by current kernel window selection?
+            const highlight = isCellInKernelWindow(rowIdx, colIdx);
+
+            // Kernel value for overlay if highlighted
+            const kernelVal = getKernelValue(rowIdx, colIdx);
+
             if (inPadding) {
               return (
-                <input
+                <div
                   key={`${rowIdx}-${colIdx}`}
-                  type="number"
-                  value={0}
-                  disabled
-                  readOnly
-                  className="border rounded-md w-12 h-12 p-0 m-0 text-center font-semibold cursor-not-allowed bg-gray-200 text-gray-400"
+                  className="relative"
                   style={{ width: "3rem", height: "3rem" }}
-                  tabIndex={-1}
-                />
+                >
+                  <input
+                    type="number"
+                    value={0}
+                    disabled
+                    readOnly
+                    className={`border rounded-md w-12 h-12 p-0 m-0 text-center font-semibold cursor-not-allowed bg-gray-200 text-gray-400 ${
+                      highlight ? "ring-4 ring-blue-400" : ""
+                    }`}
+                    style={{ width: "3rem", height: "3rem" }}
+                    tabIndex={-1}
+                  />
+                  {highlight && kernelVal !== null && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: 2,
+                        right: 2,
+                        backgroundColor: "rgba(59, 130, 246, 0.4)",
+                        color: "rgba(255, 255, 255, 0.85)",
+                        fontSize: "0.9rem",
+                        fontWeight: "bold",
+                        padding: "1px 4px",
+                        borderRadius: "4px",
+                        pointerEvents: "none",
+                        userSelect: "none",
+                        zIndex: 20,
+                        whiteSpace: "nowrap",
+                      }}
+                      title={`Kernel: ${kernelVal}`}
+                    >
+                      {kernelVal}
+                    </div>
+                  )}
+                </div>
               );
             } else {
+              // Normal input cell inside matrix
               const val = matrix[rowIdx - padding][colIdx - padding];
               const style = getBaseColor(val);
-              const kernelVal = getKernelValue(rowIdx, colIdx);
               return (
                 <div
                   key={`${rowIdx}-${colIdx}`}
@@ -132,10 +185,12 @@ const InputMatrix = ({
                     type="number"
                     value={val}
                     onChange={(e) => onChange(rowIdx, colIdx, e.target.value)}
-                    className="border rounded-md shadow-sm w-full h-full p-0 m-0 text-center font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 hover:shadow-md cursor-text transition-shadow duration-200 relative z-10"
+                    className={`border rounded-md shadow-sm w-full h-full p-0 m-0 text-center font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400 hover:shadow-md cursor-text transition-shadow duration-200 relative z-10 ${
+                      highlight ? "ring-4 ring-blue-400" : ""
+                    }`}
                     style={style}
                   />
-                  {kernelVal !== null && (
+                  {highlight && kernelVal !== null && (
                     <>
                       <div
                         style={{

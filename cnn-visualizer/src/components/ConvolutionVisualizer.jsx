@@ -64,8 +64,22 @@ const ConvolutionVisualizer = ({
     };
   };
 
+  // Tooltip text with formula and current params
+  const tooltipText = `
+    📐 Convolved Output Shape Formula:
+    Output Height = floor((Input Height + 2 × Padding - Kernel Size) / Stride) + 1
+    Output Width = floor((Input Width + 2 × Padding - Kernel Size) / Stride) + 1
+    
+    Input: ${inputRows}×${inputCols}, Kernel: ${kernelSize}×${kernelSize}, Padding: ${padding}, Stride: ${stride}
+    Output: ${outputRows} × ${outputCols}
+  `;
+
   return (
-    <div className="flex flex-col items-center bg-gray-50 p-4 rounded shadow">
+    <div
+      className="flex flex-col items-center bg-gray-50 p-4 rounded shadow max-w-full overflow-auto"
+      title={tooltipText}
+      style={{ whiteSpace: "pre-line", cursor: "help" }}
+    >
       <div
         className="grid gap-0"
         style={{

@@ -1,6 +1,33 @@
 import React from "react";
 
-const KernelMatrix = ({ matrix, setMatrix }) => {
+const kernelDescriptions = {
+  Custom: `🎛️ Custom Kernel:
+Modify the values to create your own filter.
+Each value acts as a weight in the convolution operation.`,
+
+  "Sobel X": `🎛️ Sobel X Kernel:
+Detects horizontal edges by highlighting vertical gradients.`,
+
+  "Sobel Y": `🎛️ Sobel Y Kernel:
+Detects vertical edges by highlighting horizontal gradients.`,
+
+  "Prewitt X": `🎛️ Prewitt X Kernel:
+Similar to Sobel X, detects horizontal edges.`,
+
+  "Prewitt Y": `🎛️ Prewitt Y Kernel:
+Similar to Sobel Y, detects vertical edges.`,
+
+  Sharpen: `🎛️ Sharpen Kernel:
+Enhances edges and details in the image.`,
+
+  "Edge Detect": `🎛️ Edge Detect Kernel:
+Highlights all edges in the image.`,
+
+  "Box Blur": `🎛️ Box Blur Kernel:
+Applies a simple blur by averaging surrounding pixels.`,
+};
+
+const KernelMatrix = ({ matrix, setMatrix, selectedKernelName }) => {
   // Find min and max values in the matrix (treat empty as 0)
   const getMinMax = (matrix) => {
     let min = Infinity,
@@ -51,8 +78,15 @@ const KernelMatrix = ({ matrix, setMatrix }) => {
     setMatrix(newMatrix);
   };
 
+  // Pick description based on selected kernel, fallback to Custom if unknown
+  const tooltipText = kernelDescriptions[selectedKernelName] || kernelDescriptions.Custom;
+
   return (
-    <div className="text-center">
+    <div
+      className="text-center"
+      title={tooltipText}
+      style={{ whiteSpace: "pre-line", cursor: "help" }}
+    >
       <h2 className="text-lg font-semibold mb-2">🎛️ Kernel / Filter</h2>
       <div
         className="grid gap-0"

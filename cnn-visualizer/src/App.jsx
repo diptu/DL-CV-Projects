@@ -301,7 +301,7 @@ export default function App() {
           <KernelMatrix
             matrix={kernelMatrix}
             setMatrix={setKernelMatrix}
-            selectedCell={selectedCell}
+            selectedKernelName={selectedKernelName}
             kernelSize={kernelMatrix?.length || kernelSize}
           />
           <ColorPreview matrix={kernelMatrix} />
